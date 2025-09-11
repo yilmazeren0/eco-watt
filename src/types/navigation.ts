@@ -18,6 +18,24 @@ export interface ElectricityPrice {
   period: 'peak' | 'off-peak' | 'normal';
 }
 
+export interface DemandRequest {
+  id: string;
+  companyCode: string;
+  companyName: string;
+  hour: string;
+  demandKWh: number;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+  notes?: string;
+}
+
+export interface Company {
+  code: string;
+  name: string;
+  totalDemand: number;
+  activeDemands: DemandRequest[];
+}
+
 export interface CompanyData {
   companyName: string;
   companyCode: string;

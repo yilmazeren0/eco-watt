@@ -124,6 +124,21 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
         </View>
       </View>
 
+      {/* Action Buttons */}
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.createDemandButton]}
+          onPress={() => navigation.navigate('CreateDemand')}>
+          <Text style={styles.actionButtonText}>⚡ Talep Oluştur</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.actionButton, styles.viewAllButton]}
+          onPress={() => navigation.navigate('AllCompanies')}>
+          <Text style={styles.actionButtonText}>🏢 Tüm Şirketler</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Elektrik Talep Tablosu</Text>
         <View style={styles.table}>
@@ -289,6 +304,33 @@ const styles = StyleSheet.create({
   periodText: {
     color: 'white',
     fontSize: 12,
+    fontWeight: 'bold',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 15,
+  },
+  actionButton: {
+    flex: 1,
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  createDemandButton: {
+    backgroundColor: '#FF6B6B',
+  },
+  viewAllButton: {
+    backgroundColor: '#4ECDC4',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
