@@ -1,4 +1,142 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Yeşil Dönüşüm Mobil Uygulaması
+
+Bu React Native projesi, şirketlerin elektrik talep verilerini görüntüleyebileceği ve elektrik fiyatlarını takip edebileceği yeşil dönüşüm odaklı bir mobil uygulamadır.
+
+## 📱 Özellikler
+
+- **Şirket Girişi**: Güvenli şirket kimlik doğrulaması
+- **Elektrik Talep Tablosu**: 24 saatlik elektrik tüketim verilerini görüntüleme
+- **Elektrik Fiyat Tablosu**: Saatlik elektrik birim fiyatları ve dönem bilgileri
+- **Özet Dashboard**: Toplam talep ve maliyet bilgileri
+- **Yeşil Tasarım**: Çevre dostu renk paleti
+
+## 🚀 Demo Bilgileri
+
+Uygulamayı test etmek için aşağıdaki demo bilgileri kullanabilirsiniz:
+- **Şirket Kodu**: COMP001
+- **Şifre**: 123456
+
+## ⚠️ iOS Build Sorunu ve Çözümü
+
+Bu projede `react-native-reanimated` ile React Native 0.81 arasında uyumsuzluk sorunu vardır.
+
+### Çözüm (Otomatik):
+
+```bash
+# Metro server'ı durdur (Ctrl+C)
+./clean-and-install.sh
+```
+
+### Çözüm (Manuel):
+
+```bash
+# 1. Metro server'ı durdur (Ctrl+C)
+
+# 2. Temizlik
+rm -rf node_modules package-lock.json
+cd ios && rm -rf Pods Podfile.lock && cd ..
+
+# 3. Yeniden yükle
+npm install
+cd ios && pod install && cd ..
+
+# 4. Çalıştır
+npm start
+npm run ios
+```
+
+## 🛠 Kurulum
+
+### Ön Gereksinimler
+
+### Hızlı Başlangıç
+
+```bash
+# Temizlik ve kurulum
+./clean-and-install.sh
+
+# Metro server'ı başlat
+npm start
+
+# iOS uygulamasını çalıştır (yeni terminal)
+npm run ios
+```
+
+## 📋 Uygulama Yapısı
+
+```
+src/
+├── screens/
+│   ├── LoginScreen.tsx      # Şirket giriş ekranı
+│   └── DashboardScreen.tsx  # Ana dashboard ekranı
+├── types/
+│   └── navigation.ts        # TypeScript tip tanımları
+└── components/              # Yeniden kullanılabilir bileşenler
+```
+
+## 🔧 Teknolojiler
+
+- **React Native 0.81**: Mobil uygulama framework'ü
+- **TypeScript**: Tip güvenliği
+- **React Navigation**: Temel navigation
+- **React Native Safe Area Context**: Güvenli alan yönetimi
+
+## 📊 Veri Yapısı
+
+### Elektrik Talep Verisi
+```typescript
+interface ElectricityDemand {
+  hour: string;      // Saat aralığı
+  demand: number;    // Talep (kWh)
+  cost: number;      // Maliyet (TL)
+}
+```
+
+### Elektrik Fiyat Verisi
+```typescript
+interface ElectricityPrice {
+  hour: string;           // Saat aralığı
+  unitPrice: number;      // Birim fiyat (TL/kWh)
+  period: 'peak' | 'off-peak' | 'normal';  // Dönem
+}
+```
+
+## 🎨 Tasarım
+
+Uygulama yeşil dönüşüm temasını yansıtan:
+- Ana renk: `#2E8B57` (SeaGreen)
+- Yoğun dönem: `#FF6B6B` (Kırmızı)
+- Normal dönem: `#4ECDC4` (Turkuaz)
+- Düşük dönem: `#45B7D1` (Mavi)
+
+## 🔄 Geliştirme
+
+### Yeni Özellik Eklemek
+
+1. `src/screens/` klasörüne yeni ekran ekleyin
+2. `App.tsx` dosyasında navigation mantığını güncelleyin
+
+### Sorun Giderme
+
+1. **Metro server çalışmıyor**: `npm start`
+2. **iOS build hatası**: `./clean-and-install.sh` çalıştırın
+3. **TypeScript hataları**: `npx tsc --noEmit` ile kontrol edin
+
+## 📱 Demo Kullanımı
+
+1. Uygulamayı başlatın: `npm start` → `npm run ios`
+2. Giriş ekranında demo bilgilerini girin:
+   - **Şirket Kodu**: COMP001
+   - **Şifre**: 123456
+3. Dashboard'da elektrik talep ve fiyat tablolarını görüntüleyin
+
+## 📝 Dosyalar
+
+- `IOS_BUILD_FIX.md` - Detaylı iOS build sorunu çözümleri
+- `clean-and-install.sh` - Otomatik temizlik scripti
+- `.github/copilot-instructions.md` - Proje geliştirme notları
+
+Proje hazır durumda! 🎉
 
 # Getting Started
 

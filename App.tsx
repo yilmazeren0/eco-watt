@@ -1,45 +1,47 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {StatusBar} from 'react-native';
+import LoginScreen from './src/screens/LoginScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+function App(): React.JSX.Element {
+  const [currentScreen, setCurrentScreen] = useState<'Login' | 'Dashboard'>('Login');
+  const [companyData, setCompanyData] = useState<{companyName: string; companyCode: string} | null>(null);
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+  const navigateToLogin = () => {
+    setCurrentScreen('Login');
+    setCompanyData(null);
+  };
+
+  const navigateToDashboard = (data: {companyName: string; companyCode: string}) => {
+    setCompanyData(data);
+    setCurrentScreen('Dashboard');
+  };
+
+  const mockNavigation = {
+    navigate: (screen: string, params?: any) => {
+      if (screen === 'Login') {
+        navigateToLogin();
+      } else if (screen === 'Dashboard') {
+        navigateToDashboard(params);
+      }
+    },
+  };
+
+  const mockRoute = {
+    params: companyData || {companyName: '', companyCode: ''},
+  };
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <NavigationContainer>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      {currentScreen === 'Login' ? (
+        <LoginScreen navigation={mockNavigation as any} />
+      ) : (
+        <DashboardScreen navigation={mockNavigation as any} route={mockRoute as any} />
+      )}
+    </NavigationContainer>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
