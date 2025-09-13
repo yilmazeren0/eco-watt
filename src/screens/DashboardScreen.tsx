@@ -1,4 +1,5 @@
 import React from 'react';
+import { Colors } from '../constants/Colors';
 import {
   View,
   Text,
@@ -75,13 +76,13 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
   const getPeriodColor = (period: string) => {
     switch (period) {
       case 'peak':
-        return '#FF6B6B';
+        return Colors.danger;
       case 'normal':
-        return '#4ECDC4';
+        return Colors.normal;
       case 'off-peak':
-        return '#45B7D1';
+        return Colors.offPeak;
       default:
-        return '#666';
+        return Colors.secondary;
     }
   };
 
@@ -183,7 +184,7 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -201,15 +202,15 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.secondary,
   },
   companyCode: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.secondary,
     marginTop: 4,
   },
   logoutButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.danger,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -239,12 +240,12 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.secondary,
     marginBottom: 8,
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.secondary,
     textAlign: 'center',
   },
   section: {
@@ -254,14 +255,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
     marginBottom: 15,
   },
   table: {
     backgroundColor: 'white',
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#2E8B57',
+    backgroundColor: Colors.secondary,
     paddingVertical: 15,
     paddingHorizontal: 10,
   },
@@ -286,12 +287,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tableRowEven: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.inputBackground,
   },
   tableCell: {
     textAlign: 'center',
     fontSize: 13,
-    color: '#333',
+    color: Colors.textDark,
   },
   periodBadge: {
     paddingVertical: 4,
@@ -317,16 +318,16 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   createDemandButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.danger,
   },
   viewAllButton: {
-    backgroundColor: '#4ECDC4',
+    backgroundColor: Colors.normal,
   },
   actionButtonText: {
     color: 'white',
