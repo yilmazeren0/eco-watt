@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Colors } from '../constants/Colors';
 import {
   View,
   Text,
@@ -151,10 +152,10 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return '#4CAF50';
-      case 'pending': return '#FF9800';
-      case 'rejected': return '#F44336';
-      default: return '#999';
+      case 'approved': return Colors.approved;
+      case 'pending': return Colors.pending;
+      case 'rejected': return Colors.rejected;
+      default: return Colors.defaultStatus;
     }
   };
 
@@ -306,10 +307,10 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
   },
   header: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: Colors.primary,
     padding: 20,
     paddingTop: 40,
   },
@@ -338,26 +339,26 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 5,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   summaryTitle: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.secondary,
     textAlign: 'center',
   },
   summaryValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.primary,
     marginTop: 5,
   },
   filterTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
     paddingHorizontal: 20,
     marginBottom: 10,
   },
@@ -372,16 +373,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
     alignItems: 'center',
   },
   filterButtonActive: {
-    backgroundColor: '#2E8B57',
-    borderColor: '#2E8B57',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   filterText: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.textDark,
     fontWeight: '500',
   },
   filterTextActive: {
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
   },
   filterDemand: {
     fontSize: 10,
-    color: '#666',
+    color: Colors.secondary,
     marginTop: 2,
   },
   demandList: {
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -416,11 +417,11 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
   },
   companyCode: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.secondary,
     marginTop: 2,
   },
   statusBadge: {
@@ -446,18 +447,18 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.secondary,
     width: 60,
   },
   value: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.textDark,
     flex: 1,
   },
   demand: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.primary,
     flex: 1,
   },
   period: {
@@ -467,7 +468,7 @@ const styles = StyleSheet.create({
   },
   notes: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.secondary,
     flex: 1,
     fontStyle: 'italic',
   },
@@ -478,7 +479,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.secondary,
     textAlign: 'center',
   },
 });

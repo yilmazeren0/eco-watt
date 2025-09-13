@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import { Colors } from '../constants/Colors';
 import {
   View,
   Text,
@@ -101,7 +102,7 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -115,18 +116,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
-    color: '#666',
+    color: Colors.secondary,
   },
   formContainer: {
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -141,19 +142,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.textDark,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.inputBackground,
   },
   loginButton: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -167,14 +168,14 @@ const styles = StyleSheet.create({
   demoInfo: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#e8f5e8',
+    backgroundColor: Colors.demoBackground,
     borderRadius: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#2E8B57',
+    borderLeftColor: Colors.primary,
   },
   demoText: {
     fontSize: 14,
-    color: '#2E8B57',
+    color: Colors.primary,
     fontWeight: '500',
   },
 });

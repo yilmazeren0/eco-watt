@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Colors } from '../constants/Colors';
 import {
   View,
   Text,
@@ -69,9 +70,9 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
 
   const getHourColor = (hour: string) => {
     const hourNum = parseInt(hour.split(':')[0]);
-    if (hourNum >= 17 && hourNum <= 22) return '#FF6B6B'; // Peak
-    if (hourNum >= 23 || hourNum <= 6) return '#45B7D1'; // Off-peak
-    return '#4ECDC4'; // Normal
+    if (hourNum >= 17 && hourNum <= 22) return Colors.danger; // Peak
+    if (hourNum >= 23 || hourNum <= 6) return Colors.offPeak; // Off-peak
+    return Colors.normal; // Normal
   };
 
   const getHourPeriod = (hour: string) => {
@@ -142,7 +143,7 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
               onChangeText={setDemandKWh}
               placeholder="Örn: 150"
               keyboardType="numeric"
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.defaultStatus}
             />
           </View>
 
@@ -156,7 +157,7 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
               placeholder="Ek bilgiler..."
               multiline
               numberOfLines={3}
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.defaultStatus}
             />
           </View>
 
@@ -203,13 +204,13 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: Colors.primary,
     padding: 20,
     paddingTop: 40,
   },
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.primary,
   },
   companyCode: {
     fontSize: 14,
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
     marginBottom: 15,
   },
   hoursContainer: {
@@ -275,15 +276,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   hourButtonSelected: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: Colors.buttonSelected,
   },
   hourText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
   },
   hourTextSelected: {
-    color: '#2E8B57',
+    color: Colors.primary,
   },
   periodText: {
     fontSize: 12,
@@ -296,23 +297,23 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.textDark,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: Colors.inputBackground,
   },
   textArea: {
     height: 80,
     textAlignVertical: 'top',
   },
   priceInfo: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.priceBackground,
     padding: 15,
     borderRadius: 8,
     marginBottom: 20,
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   priceTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
     marginBottom: 8,
   },
   priceText: {
@@ -330,22 +331,22 @@ const styles = StyleSheet.create({
   },
   totalPrice: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.textDark,
     marginTop: 8,
   },
   priceAmount: {
     fontWeight: 'bold',
-    color: '#2E8B57',
+    color: Colors.primary,
     fontSize: 18,
   },
   submitButton: {
-    backgroundColor: '#2E8B57',
+    backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 15,
     alignItems: 'center',
   },
   submitButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: Colors.buttonDisabled,
   },
   submitButtonText: {
     color: 'white',
