@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Colors } from '../constants/Colors';
 import {
   View,
@@ -8,121 +8,49 @@ import {
   ScrollView,
   SafeAreaView,
   FlatList,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { Company, DemandRequest } from '../types/navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+import { demandRequestService, companyService } from '../services/supabaseService';
+import type { Company, DemandRequest } from '../services/supabaseService';
+
+type AllCompaniesScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AllCompanies'>;
 
 interface AllCompaniesScreenProps {
-  navigation: any;
+  navigation: AllCompaniesScreenNavigationProp;
 }
 
 const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) => {
   const [selectedHour, setSelectedHour] = useState<string>('all');
+  const [demandRequests, setDemandRequests] = useState<DemandRequest[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock veri - gerçek uygulamada API'den gelecek
-  const mockCompanies: Company[] = [
-    {
-      code: 'COMP001',
-      name: 'Teknoloji A.Ş.',
-      totalDemand: 750,
-      activeDemands: [
-        {
-          id: '1',
-          companyCode: 'COMP001',
-          companyName: 'Teknoloji A.Ş.',
-          hour: '08:00-09:00',
-          demandKWh: 150,
-          requestDate: '11.09.2025',
-          status: 'approved',
-        },
-        {
-          id: '2',
-          companyCode: 'COMP001',
-          companyName: 'Teknoloji A.Ş.',
-          hour: '14:00-15:00',
-          demandKWh: 200,
-          requestDate: '11.09.2025',
-          status: 'pending',
-        },
-        {
-          id: '3',
-          companyCode: 'COMP001',
-          companyName: 'Teknoloji A.Ş.',
-          hour: '18:00-19:00',
-          demandKWh: 300,
-          requestDate: '11.09.2025',
-          status: 'approved',
-        },
-      ]
-    },
-    {
-      code: 'COMP002',
-      name: 'Üretim Ltd.',
-      totalDemand: 1200,
-      activeDemands: [
-        {
-          id: '4',
-          companyCode: 'COMP002',
-          companyName: 'Üretim Ltd.',
-          hour: '06:00-07:00',
-          demandKWh: 500,
-          requestDate: '11.09.2025',
-          status: 'approved',
-        },
-        {
-          id: '5',
-          companyCode: 'COMP002',
-          companyName: 'Üretim Ltd.',
-          hour: '13:00-14:00',
-          demandKWh: 400,
-          requestDate: '11.09.2025',
-          status: 'approved',
-        },
-        {
-          id: '6',
-          companyCode: 'COMP002',
-          companyName: 'Üretim Ltd.',
-          hour: '20:00-21:00',
-          demandKWh: 300,
-          requestDate: '11.09.2025',
-          status: 'pending',
-        },
-      ]
-    },
-    {
-      code: 'COMP003',
-      name: 'Enerji San.',
-      totalDemand: 950,
-      activeDemands: [
-        {
-          id: '7',
-          companyCode: 'COMP003',
-          companyName: 'Enerji San.',
-          hour: '09:00-10:00',
-          demandKWh: 250,
-          requestDate: '11.09.2025',
-          status: 'approved',
-        },
-        {
-          id: '8',
-          companyCode: 'COMP003',
-          companyName: 'Enerji San.',
-          hour: '15:00-16:00',
-          demandKWh: 350,
-          requestDate: '11.09.2025',
-          status: 'rejected',
-        },
-        {
-          id: '9',
-          companyCode: 'COMP003',
-          companyName: 'Enerji San.',
-          hour: '22:00-23:00',
-          demandKWh: 350,
-          requestDate: '11.09.2025',
-          status: 'approved',
-        },
-      ]
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Tüm talepleri ve şirketleri paralel olarak çek
+      const [requests, companiesData] = await Promise.all([
+        demandRequestService.getAllDemandRequests(),
+        companyService.getAllCompanies()
+      ]);
+      
+      setDemandRequests(requests);
+      setCompanies(companiesData);
+    } catch (error) {
+      console.error('Veri yükleme hatası:', error);
+      Alert.alert('Hata', 'Veriler yüklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Saat filtreleme
   const hours = ['all', ...Array.from({ length: 24 }, (_, i) => {
@@ -132,22 +60,10 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
 
   const getFilteredDemands = () => {
     if (selectedHour === 'all') {
-      return mockCompanies.flatMap(company => 
-        company.activeDemands.map(demand => ({
-          ...demand,
-          companyName: company.name,
-        }))
-      );
+      return demandRequests;
     }
     
-    return mockCompanies.flatMap(company => 
-      company.activeDemands
-        .filter(demand => demand.hour === selectedHour)
-        .map(demand => ({
-          ...demand,
-          companyName: company.name,
-        }))
-    );
+    return demandRequests.filter(demand => demand.hour_slot === selectedHour);
   };
 
   const getStatusColor = (status: string) => {
@@ -177,16 +93,16 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
 
   const getTotalDemandForHour = (hour: string) => {
     return getFilteredDemands()
-      .filter(demand => demand.hour === hour && demand.status === 'approved')
-      .reduce((total, demand) => total + demand.demandKWh, 0);
+      .filter(demand => demand.hour_slot === hour && demand.status === 'approved')
+      .reduce((total, demand) => total + demand.demand_kwh, 0);
   };
 
   const renderDemandItem = ({ item }: { item: DemandRequest }) => (
     <View style={styles.demandCard}>
       <View style={styles.demandHeader}>
         <View>
-          <Text style={styles.companyName}>{item.companyName}</Text>
-          <Text style={styles.companyCode}>{item.companyCode}</Text>
+          <Text style={styles.companyName}>{item.company_name}</Text>
+          <Text style={styles.companyCode}>{item.company_code}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
           <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
@@ -196,20 +112,20 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
       <View style={styles.demandDetails}>
         <View style={styles.demandRow}>
           <Text style={styles.label}>Saat:</Text>
-          <Text style={styles.value}>{item.hour}</Text>
+          <Text style={styles.value}>{item.hour_slot}</Text>
           <Text style={[styles.period, { color: getStatusColor(item.status) }]}>
-            ({getHourPeriod(item.hour)})
+            ({getHourPeriod(item.hour_slot)})
           </Text>
         </View>
         
         <View style={styles.demandRow}>
           <Text style={styles.label}>Talep:</Text>
-          <Text style={styles.demand}>{item.demandKWh} kWh</Text>
+          <Text style={styles.demand}>{item.demand_kwh} kWh</Text>
         </View>
         
         <View style={styles.demandRow}>
           <Text style={styles.label}>Tarih:</Text>
-          <Text style={styles.value}>{item.requestDate}</Text>
+          <Text style={styles.value}>{new Date(item.request_date).toLocaleDateString('tr-TR')}</Text>
         </View>
         
         {item.notes && (
@@ -221,6 +137,15 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
       </View>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Veriler yükleniyor...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -238,18 +163,16 @@ const AllCompaniesScreen: React.FC<AllCompaniesScreenProps> = ({ navigation }) =
       <View style={styles.summary}>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Toplam Şirket</Text>
-          <Text style={styles.summaryValue}>{mockCompanies.length}</Text>
+          <Text style={styles.summaryValue}>{companies.length}</Text>
         </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Aktif Talep</Text>
-          <Text style={styles.summaryValue}>
-            {mockCompanies.reduce((total, company) => total + company.activeDemands.length, 0)}
-          </Text>
+          <Text style={styles.summaryValue}>{demandRequests.length}</Text>
         </View>
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Toplam Kapasite</Text>
+          <Text style={styles.summaryTitle}>Onaylı Talep</Text>
           <Text style={styles.summaryValue}>
-            {mockCompanies.reduce((total, company) => total + company.totalDemand, 0)} kWh
+            {demandRequests.filter(req => req.status === 'approved').length}
           </Text>
         </View>
       </View>
@@ -308,6 +231,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: Colors.secondary,
   },
   header: {
     backgroundColor: Colors.primary,

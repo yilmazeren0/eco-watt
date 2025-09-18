@@ -1,5 +1,4 @@
-import React, {useState} from 'react';
-import { Colors } from '../constants/Colors';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,35 +12,58 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigation';
+import { Colors } from '../constants/Colors';
 import { useAuth } from '../contexts/AuthContext';
 
-type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Register'>;
 
 interface Props {
-  navigation: LoginScreenNavigationProp;
+  navigation: RegisterScreenNavigationProp;
 }
 
-const LoginScreen: React.FC<Props> = ({navigation}) => {
+const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [companyCode, setCompanyCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
+  const handleRegister = async () => {
+    if (!email.trim() || !password.trim() || !companyName.trim() || !companyCode.trim()) {
       Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Hata', 'Şifreler eşleşmiyor.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Hata', 'Şifre en az 6 karakter olmalıdır.');
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error } = await signIn(email, password);
+      const { data, error } = await signUp(email, password, companyName, companyCode);
 
       if (error) {
-        Alert.alert('Giriş Hatası', error.message);
+        Alert.alert('Kayıt Hatası', error.message);
       } else {
-        // AuthContext otomatik olarak Dashboard'a yönlendirecek
+        Alert.alert(
+          'Kayıt Başarılı',
+          'Hesabınız oluşturuldu. Email adresinizi doğruladıktan sonra giriş yapabilirsiniz.',
+          [
+            {
+              text: 'Tamam',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ]
+        );
       }
     } catch (error) {
       Alert.alert('Hata', 'Bir hata oluştu. Lütfen tekrar deneyin.');
@@ -57,7 +79,7 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Yeşil Dönüşüm</Text>
-          <Text style={styles.subtitle}>Şirket Girişi</Text>
+          <Text style={styles.subtitle}>Şirket Kaydı</Text>
         </View>
 
         <View style={styles.formContainer}>
@@ -75,6 +97,28 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
           </View>
 
           <View style={styles.inputContainer}>
+            <Text style={styles.label}>Şirket Adı</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Şirket adınızı girin"
+              value={companyName}
+              onChangeText={setCompanyName}
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Şirket Kodu</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Şirket kodunuzu girin"
+              value={companyCode}
+              onChangeText={setCompanyCode}
+              autoCapitalize="characters"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>Şifre</Text>
             <TextInput
               style={styles.input}
@@ -82,31 +126,38 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              autoComplete="current-password"
+              autoComplete="new-password"
             />
           </View>
 
-          <TouchableOpacity 
-            style={[styles.loginButton, loading && styles.disabledButton]} 
-            onPress={handleLogin}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Şifre Tekrar</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Şifrenizi tekrar girin"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoComplete="new-password"
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.registerButton, loading && styles.disabledButton]}
+            onPress={handleRegister}
             disabled={loading}>
-            <Text style={styles.loginButtonText}>
-              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+            <Text style={styles.registerButtonText}>
+              {loading ? 'Kaydediliyor...' : 'Kayıt Ol'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.registerLink}
-            onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.registerLinkText}>
-              Hesabınız yok mu? <Text style={styles.linkText}>Kayıt Olun</Text>
+            style={styles.loginLink}
+            onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.loginLinkText}>
+              Zaten hesabınız var mı? <Text style={styles.linkText}>Giriş Yapın</Text>
             </Text>
           </TouchableOpacity>
-
-          <View style={styles.demoInfo}>
-            <Text style={styles.demoText}>Demo için kayıt olabilir veya</Text>
-            <Text style={styles.demoText}>test@example.com / 123456 kullanabilirsiniz</Text>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -167,7 +218,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: Colors.inputBackground,
   },
-  loginButton: {
+  registerButton: {
     backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 16,
@@ -177,16 +228,16 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: Colors.secondary,
   },
-  loginButtonText: {
+  registerButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  registerLink: {
+  loginLink: {
     marginTop: 20,
     alignItems: 'center',
   },
-  registerLinkText: {
+  loginLinkText: {
     fontSize: 16,
     color: Colors.textDark,
   },
@@ -194,19 +245,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
-  demoInfo: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: Colors.demoBackground,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-  },
-  demoText: {
-    fontSize: 14,
-    color: Colors.primary,
-    fontWeight: '500',
-  },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

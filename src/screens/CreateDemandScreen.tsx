@@ -9,19 +9,28 @@ import {
   ScrollView,
   Alert,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
-import { DemandRequest } from '../types/navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import { demandRequestService, userProfileService } from '../services/supabaseService';
+
+type CreateDemandScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CreateDemand'>;
 
 interface CreateDemandScreenProps {
-  navigation: any;
-  route: any;
+  navigation: CreateDemandScreenNavigationProp;
 }
 
-const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, route }) => {
-  const { companyName, companyCode } = route.params;
+const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation }) => {
+  const { user } = useAuth();
+  const companyName = user?.user_metadata?.company_name || 'Şirket Adı';
+  const companyCode = user?.user_metadata?.company_code || 'COMP000';
+  
   const [selectedHour, setSelectedHour] = useState('');
   const [demandKWh, setDemandKWh] = useState('');
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Saat seçenekleri (00:00 - 23:00)
   const hours = Array.from({ length: 24 }, (_, i) => {
@@ -29,7 +38,7 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
     return `${hour}:00-${(i + 1).toString().padStart(2, '0')}:00`;
   });
 
-  const handleSubmitDemand = () => {
+  const handleSubmitDemand = async () => {
     if (!selectedHour || !demandKWh) {
       Alert.alert('Hata', 'Lütfen saat ve talep miktarını giriniz.');
       return;
@@ -41,31 +50,48 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
       return;
     }
 
-    // Yeni talep oluştur
-    const newDemand: DemandRequest = {
-      id: Date.now().toString(),
-      companyCode,
-      companyName,
-      hour: selectedHour,
-      demandKWh: demand,
-      requestDate: new Date().toLocaleDateString('tr-TR'),
-      status: 'pending',
-      notes: notes.trim() || undefined,
-    };
+    if (!user?.id) {
+      Alert.alert('Hata', 'Kullanıcı bilgisi bulunamadı.');
+      return;
+    }
 
-    // Burada normalde API'ye gönderilir, şimdi mock data olarak saklanır
-    console.log('Yeni Talep Oluşturuldu:', newDemand);
+    try {
+      setLoading(true);
 
-    Alert.alert(
-      'Başarılı',
-      `${selectedHour} saati için ${demand} kWh elektrik talebi oluşturuldu.`,
-      [
-        {
-          text: 'Tamam',
-          onPress: () => navigation.goBack(),
-        },
-      ]
-    );
+      // Kullanıcı profil bilgilerini al
+      const userProfile = await userProfileService.getUserProfile(user.id);
+      
+      // Yeni talep oluştur
+      const newDemandRequest = {
+        company_id: userProfile?.company_id || '',
+        user_id: user.id,
+        company_name: companyName,
+        company_code: companyCode,
+        hour_slot: selectedHour,
+        demand_kwh: demand,
+        request_date: new Date().toISOString().split('T')[0],
+        status: 'pending' as const,
+        notes: notes.trim() || undefined,
+      };
+
+      await demandRequestService.createDemandRequest(newDemandRequest);
+
+      Alert.alert(
+        'Başarılı',
+        `${selectedHour} saati için ${demand} kWh elektrik talebi oluşturuldu.`,
+        [
+          {
+            text: 'Tamam',
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Talep oluşturma hatası:', error);
+      Alert.alert('Hata', 'Talep oluşturulurken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getHourColor = (hour: string) => {
@@ -189,11 +215,15 @@ const CreateDemandScreen: React.FC<CreateDemandScreenProps> = ({ navigation, rou
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (!selectedHour || !demandKWh) && styles.submitButtonDisabled
+              (!selectedHour || !demandKWh || loading) && styles.submitButtonDisabled
             ]}
             onPress={handleSubmitDemand}
-            disabled={!selectedHour || !demandKWh}>
-            <Text style={styles.submitButtonText}>Talep Oluştur</Text>
+            disabled={!selectedHour || !demandKWh || loading}>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.submitButtonText}>Talep Oluştur</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

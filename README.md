@@ -1,24 +1,89 @@
-# Yeşil Dönüşüm Mobil Uygulaması
+# 🌱 Yeşil Dönüşüm - React Native Mobil Uygulama
 
-Bu React Native projesi, şirketlerin elektrik talep verilerini görüntüleyebileceği ve elektrik fiyatlarını takip edebileceği yeşil dönüşüm odaklı bir mobil uygulamadır.
+Şirketlerin elektrik tüketim verilerini görüntüleyebileceği ve talep oluşturabileceği React Native mobil uygulaması.
 
-## 📱 Özellikler
+## ✅ Proje Durumu: SUPABASE İLE TAM ENTEGRASYONa GEÇİŞ TAMAMLANDI
 
-- **Şirket Girişi**: Güvenli şirket kimlik doğrulaması
-- **Elektrik Talep Tablosu**: 24 saatlik elektrik tüketim verilerini görüntüleme
-- **Elektrik Fiyat Tablosu**: Saatlik elektrik birim fiyatları ve dönem bilgileri
-- **Özet Dashboard**: Toplam talep ve maliyet bilgileri
-- **Yeşil Tasarım**: Çevre dostu renk paleti
+### � Yeni Özellikler:
+- ✅ **Supabase Authentication**: Gerçek kullanıcı giriş/kayıt sistemi
+- ✅ **PostgreSQL Database**: Supabase ile tam veritabanı entegrasyonu
+- ✅ **Row Level Security**: Güvenli veri erişimi
+- ✅ **Real Navigation**: React Navigation Stack Navigator
+- ✅ **TypeScript**: Tam tip güvenliği
+- ✅ **Environment Configuration**: .env dosyası desteği
 
-## 🚀 Demo Bilgileri
+### 📱 Ekranlar:
+- **LoginScreen**: Email/şifre ile giriş
+- **RegisterScreen**: Yeni kullanıcı kaydı  
+- **DashboardScreen**: Elektrik talep ve fiyat tabloları
+- **CreateDemandScreen**: Yeni elektrik talebi oluşturma
+- **AllCompaniesScreen**: Tüm şirketler görünümü
 
-Uygulamayı test etmek için aşağıdaki demo bilgileri kullanabilirsiniz:
-- **Şirket Kodu**: COMP001
-- **Şifre**: 123456
+## 🛠️ Kurulum
 
-## ⚠️ iOS Build Sorunu ve Çözümü
+### 1. Dependencies'leri yükleyin
+```bash
+npm install
+cd ios && pod install && cd ..
+```
 
-Bu projede `react-native-reanimated` ile React Native 0.81 arasında uyumsuzluk sorunu vardır.
+### 2. Supabase Konfigürasyonu
+
+#### .env dosyasını güncelleyin:
+```env
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
+NODE_ENV=development
+```
+
+#### Supabase projesinde schema'yı oluşturun:
+1. Supabase Dashboard → SQL Editor
+2. `supabase-schema.sql` dosyasının içeriğini çalıştırın
+
+### 3. Uygulamayı çalıştırın
+```bash
+npm run ios    # iOS
+npm run android # Android
+npm start      # Metro bundler
+```
+
+## 🧪 Demo/Test
+
+### Demo Hesap:
+```
+Email: test@example.com
+Şifre: 123456
+```
+
+### Test Şirket Kodları:
+- COMP001: Yeşil Enerji A.Ş.
+- COMP002: Ekoloji Teknoloji Ltd.
+- COMP003: Sürdürülebilir Çözümler A.Ş.
+
+## 📊 Database Schema
+
+### Ana Tablolar:
+- **companies**: Şirket bilgileri
+- **user_profiles**: Kullanıcı profilleri (auth ile bağlantılı)
+- **electricity_demands**: Elektrik talep verileri  
+- **electricity_prices**: Elektrik fiyat bilgileri
+- **demand_requests**: Talep istekleri
+
+## 🚨 Troubleshooting
+
+### iOS Build Sorunları:
+```bash
+./clean-and-install.sh
+```
+
+### Supabase Bağlantı:
+1. `.env` dosyasını kontrol edin
+2. Supabase API anahtarlarını verify edin
+3. Database schema'nın oluşturulduğundan emin olun
+
+---
+
+**Tech Stack**: React Native 0.81.1 + Supabase + TypeScript ✅
 
 ### Çözüm (Otomatik):
 
