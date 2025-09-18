@@ -164,6 +164,23 @@ export const electricityDemandService = {
 
     return data || [];
   },
+
+  async getUserTodayDemands(userId: string): Promise<ElectricityDemand[]> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('electricity_demands')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('demand_date', today)
+      .order('hour_slot');
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  },
 };
 
 // Demand Request Services

@@ -39,8 +39,8 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
     try {
       setLoading(true);
       if (user?.id) {
-        // Kullanıcının talep verilerini çek
-        const demands = await electricityDemandService.getUserCompanyDemands(user.id);
+        // Kullanıcının günlük talep verilerini çek
+        const demands = await electricityDemandService.getUserTodayDemands(user.id);
         setElectricityDemands(demands);
       }
       
@@ -124,11 +124,11 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.summaryContainer}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{totalDemand.toLocaleString()}</Text>
-          <Text style={styles.summaryLabel}>Toplam Talep (kWh)</Text>
+          <Text style={styles.summaryLabel}>Günlük Toplam Talep (kWh)</Text>
         </View>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{totalCost.toLocaleString()} ₺</Text>
-          <Text style={styles.summaryLabel}>Toplam Maliyet</Text>
+          <Text style={styles.summaryLabel}>Günlük Toplam Maliyet</Text>
         </View>
       </View>
 
