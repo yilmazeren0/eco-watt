@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "816854943209",
+    "project_id": "green-grad-project",
+    "storage_bucket": "green-grad-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:816854943209:android:7dd89d079f4b0b6c64b778",
+        "android_client_info": {
+          "package_name": "com.greentransformapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKztLmjH22JQnH6nOGK8Sbs-gWfAtUcgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

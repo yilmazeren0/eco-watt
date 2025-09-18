@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Colors } from '../constants/Colors';
 import {
   View,
@@ -7,60 +7,53 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
-import {ElectricityDemand, ElectricityPrice} from '../types/navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import { electricityDemandService, electricityPriceService } from '../services/supabaseService';
+import type { ElectricityDemand, ElectricityPrice } from '../services/supabaseService';
+
+type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
 
 interface Props {
-  navigation: {
-    navigate: (screen: string, params?: any) => void;
-  };
-  route: {
-    params: {
-      companyName: string;
-      companyCode: string;
-    };
-  };
+  navigation: DashboardScreenNavigationProp;
 }
 
-const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
-  const {companyName, companyCode} = route.params;
+const DashboardScreen: React.FC<Props> = ({ navigation }) => {
+  const { user, signOut } = useAuth();
+  const [electricityDemands, setElectricityDemands] = useState<ElectricityDemand[]>([]);
+  const [electricityPrices, setElectricityPrices] = useState<ElectricityPrice[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // User metadata'dan şirket bilgilerini al
+  const companyName = user?.user_metadata?.company_name || 'Şirket Adı';
+  const companyCode = user?.user_metadata?.company_code || 'COMP000';
 
-  // Örnek elektrik talep verileri
-  const electricityDemands: ElectricityDemand[] = [
-    {hour: '00:00-01:00', demand: 120, cost: 150.5},
-    {hour: '01:00-02:00', demand: 100, cost: 125.0},
-    {hour: '02:00-03:00', demand: 95, cost: 118.75},
-    {hour: '03:00-04:00', demand: 90, cost: 112.5},
-    {hour: '04:00-05:00', demand: 85, cost: 106.25},
-    {hour: '05:00-06:00', demand: 110, cost: 137.5},
-    {hour: '06:00-07:00', demand: 140, cost: 175.0},
-    {hour: '07:00-08:00', demand: 180, cost: 225.0},
-    {hour: '08:00-09:00', demand: 220, cost: 275.0},
-    {hour: '09:00-10:00', demand: 250, cost: 312.5},
-    {hour: '10:00-11:00', demand: 280, cost: 350.0},
-    {hour: '11:00-12:00', demand: 300, cost: 375.0},
-    {hour: '12:00-13:00', demand: 320, cost: 400.0},
-    {hour: '13:00-14:00', demand: 310, cost: 387.5},
-    {hour: '14:00-15:00', demand: 290, cost: 362.5},
-    {hour: '15:00-16:00', demand: 270, cost: 337.5},
-    {hour: '16:00-17:00', demand: 260, cost: 325.0},
-    {hour: '17:00-18:00', demand: 240, cost: 300.0},
-    {hour: '18:00-19:00', demand: 220, cost: 275.0},
-    {hour: '19:00-20:00', demand: 200, cost: 250.0},
-    {hour: '20:00-21:00', demand: 180, cost: 225.0},
-    {hour: '21:00-22:00', demand: 160, cost: 200.0},
-    {hour: '22:00-23:00', demand: 140, cost: 175.0},
-    {hour: '23:00-00:00', demand: 130, cost: 162.5},
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  // Örnek elektrik fiyat verileri
-  const electricityPrices: ElectricityPrice[] = [
-    {hour: '00:00-06:00', unitPrice: 1.25, period: 'off-peak'},
-    {hour: '06:00-08:00', unitPrice: 1.65, period: 'normal'},
-    {hour: '08:00-17:00', unitPrice: 2.10, period: 'peak'},
-    {hour: '17:00-22:00', unitPrice: 1.85, period: 'normal'},
-    {hour: '22:00-00:00', unitPrice: 1.45, period: 'off-peak'},
-  ];
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      if (user?.id) {
+        // Kullanıcının talep verilerini çek
+        const demands = await electricityDemandService.getUserCompanyDemands(user.id);
+        setElectricityDemands(demands);
+      }
+      
+      // Güncel elektrik fiyatlarını çek
+      const prices = await electricityPriceService.getCurrentPrices();
+      setElectricityPrices(prices);
+    } catch (error) {
+      console.error('Veri yükleme hatası:', error);
+      Alert.alert('Hata', 'Veriler yüklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -68,7 +61,12 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
       'Çıkış yapmak istediğinize emin misiniz?',
       [
         {text: 'Hayır', style: 'cancel'},
-        {text: 'Evet', onPress: () => navigation.navigate('Login')},
+        {text: 'Evet', onPress: async () => {
+          const { error } = await signOut();
+          if (error) {
+            Alert.alert('Hata', 'Çıkış yapılırken bir hata oluştu.');
+          }
+        }},
       ]
     );
   };
@@ -99,8 +97,17 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
     }
   };
 
-  const totalDemand = electricityDemands.reduce((sum, item) => sum + item.demand, 0);
-  const totalCost = electricityDemands.reduce((sum, item) => sum + item.cost, 0);
+  const totalDemand = electricityDemands.reduce((sum, item) => sum + item.demand_kwh, 0);
+  const totalCost = electricityDemands.reduce((sum, item) => sum + item.cost_tl, 0);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Veriler yükleniyor...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -150,9 +157,9 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
           </View>
           {electricityDemands.map((item, index) => (
             <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
-              <Text style={[styles.tableCell, {flex: 2}]}>{item.hour}</Text>
-              <Text style={[styles.tableCell, {flex: 1.5}]}>{item.demand}</Text>
-              <Text style={[styles.tableCell, {flex: 1.5}]}>{item.cost.toFixed(2)}</Text>
+              <Text style={[styles.tableCell, {flex: 2}]}>{item.hour_slot}</Text>
+              <Text style={[styles.tableCell, {flex: 1.5}]}>{item.demand_kwh}</Text>
+              <Text style={[styles.tableCell, {flex: 1.5}]}>{item.cost_tl.toFixed(2)}</Text>
             </View>
           ))}
         </View>
@@ -168,10 +175,10 @@ const DashboardScreen: React.FC<Props> = ({navigation, route}) => {
           </View>
           {electricityPrices.map((item, index) => (
             <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
-              <Text style={[styles.tableCell, {flex: 2}]}>{item.hour}</Text>
-              <Text style={[styles.tableCell, {flex: 1.5}]}>{item.unitPrice.toFixed(2)} ₺/kWh</Text>
-              <View style={[styles.periodBadge, {backgroundColor: getPeriodColor(item.period), flex: 1.5}]}>
-                <Text style={styles.periodText}>{getPeriodText(item.period)}</Text>
+              <Text style={[styles.tableCell, {flex: 2}]}>{item.hour_range}</Text>
+              <Text style={[styles.tableCell, {flex: 1.5}]}>{item.unit_price_tl.toFixed(2)} ₺/kWh</Text>
+              <View style={[styles.periodBadge, {backgroundColor: getPeriodColor(item.period_type), flex: 1.5}]}>
+                <Text style={styles.periodText}>{getPeriodText(item.period_type)}</Text>
               </View>
             </View>
           ))}
@@ -185,6 +192,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: Colors.secondary,
   },
   header: {
     flexDirection: 'row',
