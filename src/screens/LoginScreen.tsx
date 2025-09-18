@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import { Colors } from '../constants/Colors';
+import { supabase } from '../lib/supabase'
 import {
   View,
   Text,
@@ -10,7 +11,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  AppState,
 } from 'react-native';
+
 
 interface Props {
   navigation: {
@@ -19,11 +22,12 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({navigation}) => {
-  const [companyName, setCompanyName] = useState('');
+  const [email, setCompanyName] = useState('');
   const [companyCode, setCompanyCode] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = () => {
+  /*const handleLogin = () => {
     if (!companyName.trim() || !companyCode.trim() || !password.trim()) {
       Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
       return;
@@ -32,13 +36,49 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
     // Basit doğrulama - gerçek uygulamada API çağrısı yapılacak
     if (companyCode === 'COMP001' && password === '123456') {
       navigation.navigate('Dashboard', {
-        companyName,
+        email,
         companyCode,
       });
     } else {
       Alert.alert('Hata', 'Geçersiz şirket kodu veya şifre.');
     }
-  };
+  };*/
+
+  async function signInWithEmail() {
+  try {
+    setLoading(true);
+    
+    if (!email || !password) {
+      throw new Error('Email ve şifre zorunludur');
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw error;
+    }
+    
+    if (data?.session) {
+      navigation.navigate('Dashboard', {
+        email,
+        companyCode,
+      });
+    } else {
+      throw new Error('Oturum başlatılamadı');
+    }
+  } catch (error: any) {
+    console.error('Login error:', error);
+    Alert.alert(
+      'Hata',
+      error?.message || 'Giriş yapılırken bir hata oluştu'
+    );
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <KeyboardAvoidingView
@@ -55,8 +95,8 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.label}>Şirket Adı</Text>
             <TextInput
               style={styles.input}
-              placeholder="Şirket adınızı girin"
-              value={companyName}
+              placeholder="Email girin"
+              value={email}
               onChangeText={setCompanyName}
               autoCapitalize="words"
             />
@@ -84,15 +124,9 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
             />
           </View>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <TouchableOpacity style={styles.loginButton} onPress={signInWithEmail}>
             <Text style={styles.loginButtonText}>Giriş Yap</Text>
           </TouchableOpacity>
-
-          <View style={styles.demoInfo}>
-            <Text style={styles.demoText}>Demo Bilgileri:</Text>
-            <Text style={styles.demoText}>Şirket Kodu: COMP001</Text>
-            <Text style={styles.demoText}>Şifre: 123456</Text>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
