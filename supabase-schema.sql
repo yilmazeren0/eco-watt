@@ -200,3 +200,27 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Güvenli admin yetkisi: user_profiles.is_admin sütunu ve RLS politikaları
+ALTER TABLE IF EXISTS user_profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_user_profiles_is_admin ON user_profiles(is_admin);
+
+-- Eğer demand_shift_recommendations veya approval_workflow tabloları varsa,
+-- adminlerin bunları görmesi için güvenli politika ekleyin (user_profiles.is_admin bazlı)
+DROP POLICY IF EXISTS "Admins can view all recommendations" ON public.demand_shift_recommendations;
+CREATE POLICY "Admins can view all recommendations" ON demand_shift_recommendations
+    FOR SELECT TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles up WHERE up.id = auth.uid() AND up.is_admin = TRUE
+        )
+    );
+
+DROP POLICY IF EXISTS "Admins can view all workflows" ON public.approval_workflow;
+CREATE POLICY "Admins can view all workflows" ON approval_workflow
+    FOR SELECT TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles up WHERE up.id = auth.uid() AND up.is_admin = TRUE
+        )
+    );

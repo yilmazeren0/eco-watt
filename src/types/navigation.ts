@@ -4,6 +4,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   CreateDemand: undefined;
   AllCompanies: undefined;
+  DemandShift: undefined;
 };
 
 export interface ElectricityDemand {
@@ -68,4 +69,44 @@ export interface CompanyData {
   companyCode: string;
   electricityDemands: ElectricityDemand[];
   electricityPrices: ElectricityPrice[];
+}
+
+// Akıllı Enerji Yönetimi Tipleri
+export interface DynamicTariff {
+  id: string;
+  hour_slot: string;
+  base_price: number;
+  peak_multiplier: number;
+  off_peak_discount: number;
+  effective_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DemandShiftRecommendation {
+  id: string;
+  company_id: string;
+  user_id: string;
+  original_hour: string;
+  recommended_hour: string;
+  original_load_kwh: number;
+  potential_savings_tl: number;
+  co2_reduction_kg: number;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected' | 'implemented';
+  approved_at?: string;
+  implemented_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApprovalWorkflow {
+  id: string;
+  recommendation_id: string;
+  requested_by: string;
+  approved_by?: string;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }
