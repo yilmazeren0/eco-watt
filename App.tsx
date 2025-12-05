@@ -9,6 +9,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import CreateDemandScreen from './src/screens/CreateDemandScreen';
 import AllCompaniesScreen from './src/screens/AllCompaniesScreen';
+import DemandShiftScreen from './src/screens/DemandShiftScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -30,36 +31,42 @@ const AppNavigator: React.FC = () => {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-      }}>
+      }}
+      initialRouteName={user ? "Dashboard" : "Login"}>
       {user ? (
         // Authenticated screens
         <>
-          <Stack.Screen 
-            name="Dashboard" 
+          <Stack.Screen
+            name="Dashboard"
             component={DashboardScreen}
             options={{ title: 'Dashboard' }}
           />
-          <Stack.Screen 
-            name="CreateDemand" 
+          <Stack.Screen
+            name="CreateDemand"
             component={CreateDemandScreen}
             options={{ title: 'Talep Oluştur' }}
           />
-          <Stack.Screen 
-            name="AllCompanies" 
+          <Stack.Screen
+            name="AllCompanies"
             component={AllCompaniesScreen}
             options={{ title: 'Tüm Şirketler' }}
+          />
+          <Stack.Screen
+            name="DemandShift"
+            component={DemandShiftScreen}
+            options={{ title: 'Akıllı Enerji Önerileri' }}
           />
         </>
       ) : (
         // Auth screens
         <>
-          <Stack.Screen 
-            name="Login" 
+          <Stack.Screen
+            name="Login"
             component={LoginScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen 
-            name="Register" 
+          <Stack.Screen
+            name="Register"
             component={RegisterScreen}
             options={{ headerShown: false }}
           />
