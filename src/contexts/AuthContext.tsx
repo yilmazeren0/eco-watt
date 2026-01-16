@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, companyName: string, companyCode: string) => Promise<any>;
+  signUp: (email: string, password: string, companyName?: string, companyCode?: string) => Promise<any>;
   signOut: () => Promise<any>;
 }
 
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { data, error };
   };
 
-  const signUp = async (email: string, password: string, companyName: string, companyCode: string) => {
+  const signUp = async (email: string, password: string, companyName?: string, companyCode?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -69,37 +69,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Eğer signup başarılı ise ve trigger çalışmadıysa manuel olarak profile oluştur
     if (data.user && !error) {
       try {
-        // Önce şirket var mı kontrol et, yoksa oluştur
-        let { data: company } = await supabase
-          .from('companies')
-          .select('id')
-          .eq('code', companyCode)
-          .single();
+        let company = null;
 
-        if (!company) {
-          const { data: newCompany } = await supabase
+        // Sadece kurumsal kayıt ise şirket işlemleri yap
+        if (companyName && companyCode) {
+          // Önce şirket var mı kontrol et, yoksa oluştur
+          let { data: existingCompany } = await supabase
             .from('companies')
-            .insert({
-              name: companyName,
-              code: companyCode,
-            })
             .select('id')
+            .eq('code', companyCode)
             .single();
-          company = newCompany;
+
+          company = existingCompany;
+
+          if (!company) {
+            const { data: newCompany } = await supabase
+              .from('companies')
+              .insert({
+                name: companyName,
+                code: companyCode,
+              })
+              .select('id')
+              .single();
+            company = newCompany;
+          }
         }
 
-        // User profile oluştur
-        if (company) {
-          await supabase
-            .from('user_profiles')
-            .insert({
-              id: data.user.id,
-              company_id: company.id,
-              email: email,
-              company_name: companyName,
-              company_code: companyCode,
-            });
-        }
+        // User profile oluştur (Kurumsal ise company_id ile, değilse null)
+        await supabase
+          .from('user_profiles')
+          .insert({
+            id: data.user.id,
+            company_id: company?.id ?? null,
+            email: email,
+            company_name: companyName ?? null,
+            company_code: companyCode ?? null,
+          });
       } catch (profileError) {
         console.log('Profile creation error (non-critical):', profileError);
         // Profile oluşturma hatası signup'ı iptal etmez

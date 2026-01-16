@@ -14,6 +14,11 @@ import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { electricityDemandService, electricityPriceService, demandRequestService } from '../services/supabaseService';
 import type { ElectricityDemand, ElectricityPrice } from '../services/supabaseService';
+import { greenPointsService, UserGreenPoints } from '../services/greenPointsService';
+import GreenPointsCard from '../components/GreenPointsCard';
+import GrowingTree from '../components/GrowingTree';
+import DailyEcoTip from '../components/DailyEcoTip';
+import HabitCheckIn from '../components/HabitCheckIn';
 
 type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
 
@@ -25,7 +30,11 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const { user, signOut } = useAuth();
   const [electricityDemands, setElectricityDemands] = useState<ElectricityDemand[]>([]);
   const [electricityPrices, setElectricityPrices] = useState<ElectricityPrice[]>([]);
+  const [greenPoints, setGreenPoints] = useState<UserGreenPoints | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Bireysel mi kurumsal mı kontrol et
+  const isIndividual = !user?.user_metadata?.company_code;
 
   // User metadata'dan şirket bilgilerini al
   const companyName = user?.user_metadata?.company_name || 'Şirket Adı';
@@ -109,6 +118,27 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         });
 
         setElectricityDemands(demandsWithCosts);
+
+        // Yeşil puanları yükle
+        try {
+          const points = await greenPointsService.getUserPoints(user.id);
+          if (points) {
+            setGreenPoints(points);
+          } else {
+            // Yeni kullanıcı için puan kaydı oluştur
+            const newPoints = await greenPointsService.ensureUserPointsExist(user.id);
+            setGreenPoints(newPoints);
+          }
+          // Günlük giriş puanı ver
+          await greenPointsService.addDailyLoginPoints(user.id);
+          // Güncel puanları tekrar çek
+          const updatedPoints = await greenPointsService.getUserPoints(user.id);
+          if (updatedPoints) {
+            setGreenPoints(updatedPoints);
+          }
+        } catch (pointsError) {
+          console.log('Yeşil puan yüklenemedi (tabloları oluşturdunuz mu?):', pointsError);
+        }
       }
     } catch (error) {
       console.error('Veri yükleme hatası:', error);
@@ -176,91 +206,196 @@ const DashboardScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Header - Kurumsal için şirket bilgisi, bireysel için kullanıcı adı */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.companyName}>{companyName}</Text>
-          <Text style={styles.companyCode}>Kod: {companyCode}</Text>
+          {isIndividual ? (
+            <>
+              <Text style={styles.companyName}>🌱 Yeşil Dönüşüm</Text>
+              <Text style={styles.companyCode}>Hoş geldin!</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.companyName}>{companyName}</Text>
+              <Text style={styles.companyCode}>Kod: {companyCode}</Text>
+            </>
+          )}
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Çıkış</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{totalDemand.toLocaleString()}</Text>
-          <Text style={styles.summaryLabel}>Günlük Toplam Talep (kWh)</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{totalCost.toLocaleString()} ₺</Text>
-          <Text style={styles.summaryLabel}>Günlük Toplam Maliyet</Text>
-        </View>
-      </View>
+      {/* ===== BİREYSEL KULLANICI İÇERİĞİ ===== */}
+      {isIndividual ? (
+        <>
+          {/* Büyüyen Ağaç - Bireysel için büyük gösterim */}
+          {greenPoints && (
+            <TouchableOpacity
+              style={styles.treeSection}
+              onPress={() => navigation.navigate('GreenPoints')}
+              activeOpacity={0.9}
+            >
+              <GrowingTree
+                treeLevel={greenPoints.tree_level}
+                totalPoints={greenPoints.total_points}
+                currentStreak={greenPoints.current_streak}
+              />
+            </TouchableOpacity>
+          )}
 
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.createDemandButton]}
-          onPress={() => navigation.navigate('CreateDemand')}>
-          <Text style={styles.actionButtonText}>⚡ Talep Oluştur</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, styles.viewAllButton]}
-          onPress={() => navigation.navigate('AllCompanies')}>
-          <Text style={styles.actionButtonText}>🏢 Tüm Şirketler</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Akıllı Enerji Yönetimi Butonu */}
-      <View style={styles.smartEnergySection}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.smartEnergyButton]}
-          onPress={() => navigation.navigate('DemandShift')}>
-          <Text style={styles.actionButtonText}>⚡ Akıllı Enerji Önerileri</Text>
-        </TouchableOpacity>
-        <Text style={styles.smartEnergyDescription}>
-          Dinamik tarifelerden yararlanarak talep kaydırma önerileri al
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Elektrik Talep Tablosu</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, { flex: 2 }]}>Saat</Text>
-            <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Talep (kWh)</Text>
-            <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Maliyet (₺)</Text>
+          {/* Günlük Eko İpucu */}
+          <View style={styles.ecoSection}>
+            <DailyEcoTip />
           </View>
-          {electricityDemands.map((item, index) => (
-            <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
-              <Text style={[styles.tableCell, { flex: 2 }]}>{item.hour_slot}</Text>
-              <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.demand_kwh}</Text>
-              <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.cost_tl.toFixed(2)}</Text>
+
+          {/* Alışkanlık Check-in */}
+          {user?.id && (
+            <View style={styles.ecoSection}>
+              <HabitCheckIn
+                userId={user.id}
+                onCheckIn={() => loadData()}
+              />
             </View>
-          ))}
-        </View>
-      </View>
+          )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Elektrik Fiyat Tablosu</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, { flex: 2 }]}>Saat Aralığı</Text>
-            <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Birim Fiyat</Text>
-            <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Dönem</Text>
+          {/* Atık Ayrıştırma Butonu */}
+          <View style={styles.ecoSection}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.wasteButton]}
+              onPress={() => navigation.navigate('WasteClassification')}
+            >
+              <Text style={styles.actionButtonText}>♻️ Atık Ayrıştırma Asistanı</Text>
+            </TouchableOpacity>
+            <Text style={styles.smartEnergyDescription}>
+              Yapay zeka ile atık türünü belirle ve +10 puan kazan
+            </Text>
           </View>
-          {electricityPrices.map((item, index) => (
-            <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
-              <Text style={[styles.tableCell, { flex: 2 }]}>{item.hour_range}</Text>
-              <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.unit_price_tl.toFixed(2)} ₺/kWh</Text>
-              <View style={[styles.periodBadge, { backgroundColor: getPeriodColor(item.period_type), flex: 1.5 }]}>
-                <Text style={styles.periodText}>{getPeriodText(item.period_type)}</Text>
+
+          {/* Karbon Ayak İzi Butonu */}
+          <View style={styles.ecoSection}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.carbonButton]}
+              onPress={() => navigation.navigate('CarbonFootprint')}
+            >
+              <Text style={styles.actionButtonText}>👣 Karbon Ayak İzi</Text>
+            </TouchableOpacity>
+            <Text style={styles.smartEnergyDescription}>
+              Kişisel karbon emisyonlarınızı hesaplayın
+            </Text>
+          </View>
+        </>
+      ) : (
+        /* ===== KURUMSAL KULLANICI İÇERİĞİ ===== */
+        <>
+          {/* Özet Kartları */}
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>{totalDemand.toLocaleString()}</Text>
+              <Text style={styles.summaryLabel}>Günlük Toplam Talep (kWh)</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>{totalCost.toLocaleString()} ₺</Text>
+              <Text style={styles.summaryLabel}>Günlük Toplam Maliyet</Text>
+            </View>
+          </View>
+
+          {/* Yeşil Puan Kartı - Kurumsal için küçük */}
+          {greenPoints && (
+            <View style={styles.greenPointsSection}>
+              <GreenPointsCard
+                totalPoints={greenPoints.total_points}
+                currentStreak={greenPoints.current_streak}
+                treeLevel={greenPoints.tree_level}
+                onPress={() => navigation.navigate('GreenPoints')}
+              />
+            </View>
+          )}
+
+          {/* Kurumsal Aksiyonlar */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.createDemandButton]}
+              onPress={() => navigation.navigate('CreateDemand')}
+            >
+              <Text style={styles.actionButtonText}>⚡ Talep Oluştur</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.viewAllButton]}
+              onPress={() => navigation.navigate('AllCompanies')}
+            >
+              <Text style={styles.actionButtonText}>🏢 Tüm Şirketler</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Akıllı Enerji Yönetimi */}
+          <View style={styles.smartEnergySection}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.smartEnergyButton]}
+              onPress={() => navigation.navigate('DemandShift')}
+            >
+              <Text style={styles.actionButtonText}>⚡ Akıllı Enerji Önerileri</Text>
+            </TouchableOpacity>
+            <Text style={styles.smartEnergyDescription}>
+              Dinamik tarifelerden yararlanarak talep kaydırma önerileri al
+            </Text>
+          </View>
+
+          {/* Karbon Ayak İzi - Kurumsal */}
+          <View style={styles.smartEnergySection}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.carbonButton]}
+              onPress={() => navigation.navigate('CarbonFootprint')}
+            >
+              <Text style={styles.actionButtonText}>👣 Karbon Ayak İzi</Text>
+            </TouchableOpacity>
+            <Text style={styles.smartEnergyDescription}>
+              Şirketinizin karbon emisyonlarını hesaplayın
+            </Text>
+          </View>
+
+          {/* Elektrik Talep Tablosu */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Elektrik Talep Tablosu</Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableHeaderText, { flex: 2 }]}>Saat</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Talep (kWh)</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Maliyet (₺)</Text>
               </View>
+              {electricityDemands.map((item, index) => (
+                <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
+                  <Text style={[styles.tableCell, { flex: 2 }]}>{item.hour_slot}</Text>
+                  <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.demand_kwh}</Text>
+                  <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.cost_tl.toFixed(2)}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
-      </View>
+          </View>
+
+          {/* Elektrik Fiyat Tablosu */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Elektrik Fiyat Tablosu</Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableHeaderText, { flex: 2 }]}>Saat Aralığı</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Birim Fiyat</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1.5 }]}>Dönem</Text>
+              </View>
+              {electricityPrices.map((item, index) => (
+                <View key={index} style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}>
+                  <Text style={[styles.tableCell, { flex: 2 }]}>{item.hour_range}</Text>
+                  <Text style={[styles.tableCell, { flex: 1.5 }]}>{item.unit_price_tl.toFixed(2)} ₺/kWh</Text>
+                  <View style={[styles.periodBadge, { backgroundColor: getPeriodColor(item.period_type), flex: 1.5 }]}>
+                    <Text style={styles.periodText}>{getPeriodText(item.period_type)}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 };
@@ -424,12 +559,32 @@ const styles = StyleSheet.create({
   viewAllButton: {
     backgroundColor: Colors.normal,
   },
+  greenPointsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  treeSection: {
+    paddingHorizontal: 20,
+    marginBottom: 15,
+  },
+  ecoSection: {
+    paddingHorizontal: 20,
+    marginBottom: 15,
+  },
   smartEnergySection: {
     paddingHorizontal: 20,
     marginBottom: 20,
   },
   smartEnergyButton: {
     backgroundColor: '#2196F3',
+    marginBottom: 8,
+  },
+  wasteButton: {
+    backgroundColor: '#4CAF50', // Green
+    marginBottom: 8,
+  },
+  carbonButton: {
+    backgroundColor: '#795548', // Brown for carbon/footprint
     marginBottom: 8,
   },
   smartEnergyDescription: {

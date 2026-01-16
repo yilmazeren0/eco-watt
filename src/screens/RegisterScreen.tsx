@@ -22,6 +22,7 @@ interface Props {
 }
 
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
+  const [userType, setUserType] = useState<'corporate' | 'individual'>('corporate');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,9 +31,15 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
 
+
   const handleRegister = async () => {
-    if (!email.trim() || !password.trim() || !companyName.trim() || !companyCode.trim()) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Hata', 'Lütfen email ve şifre alanlarını doldurun.');
+      return;
+    }
+
+    if (userType === 'corporate' && (!companyName.trim() || !companyCode.trim())) {
+      Alert.alert('Hata', 'Lütfen şirket bilgilerini doldurun.');
       return;
     }
 
@@ -49,7 +56,12 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const { data, error } = await signUp(email, password, companyName, companyCode);
+      const { data, error } = await signUp(
+        email,
+        password,
+        userType === 'corporate' ? companyName : undefined,
+        userType === 'corporate' ? companyCode : undefined
+      );
 
       if (error) {
         Alert.alert('Kayıt Hatası', error.message);
@@ -79,7 +91,40 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Yeşil Dönüşüm</Text>
-          <Text style={styles.subtitle}>Şirket Kaydı</Text>
+          <Text style={styles.subtitle}>
+            {userType === 'corporate' ? 'Şirket Kaydı' : 'Bireysel Kayıt'}
+          </Text>
+        </View>
+
+        <View style={styles.typeSelector}>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              userType === 'corporate' && styles.activeTypeButton,
+            ]}
+            onPress={() => setUserType('corporate')}>
+            <Text
+              style={[
+                styles.typeButtonText,
+                userType === 'corporate' && styles.activeTypeButtonText,
+              ]}>
+              Kurumsal
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              userType === 'individual' && styles.activeTypeButton,
+            ]}
+            onPress={() => setUserType('individual')}>
+            <Text
+              style={[
+                styles.typeButtonText,
+                userType === 'individual' && styles.activeTypeButtonText,
+              ]}>
+              Bireysel
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.formContainer}>
@@ -96,27 +141,31 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Şirket Adı</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Şirket adınızı girin"
-              value={companyName}
-              onChangeText={setCompanyName}
-              autoCapitalize="words"
-            />
-          </View>
+          {userType === 'corporate' && (
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Şirket Adı</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Şirket adınızı girin"
+                  value={companyName}
+                  onChangeText={setCompanyName}
+                  autoCapitalize="words"
+                />
+              </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Şirket Kodu</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Şirket kodunuzu girin"
-              value={companyCode}
-              onChangeText={setCompanyCode}
-              autoCapitalize="characters"
-            />
-          </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Şirket Kodu</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Şirket kodunuzu girin"
+                  value={companyCode}
+                  onChangeText={setCompanyCode}
+                  autoCapitalize="characters"
+                />
+              </View>
+            </>
+          )}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Şifre</Text>
@@ -244,6 +293,35 @@ const styles = StyleSheet.create({
   linkText: {
     color: Colors.primary,
     fontWeight: '600',
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 24,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  typeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTypeButton: {
+    backgroundColor: Colors.primary,
+  },
+  typeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textDark,
+  },
+  activeTypeButtonText: {
+    color: 'white',
   },
 });
 

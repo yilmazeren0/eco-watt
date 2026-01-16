@@ -10,6 +10,10 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import CreateDemandScreen from './src/screens/CreateDemandScreen';
 import AllCompaniesScreen from './src/screens/AllCompaniesScreen';
 import DemandShiftScreen from './src/screens/DemandShiftScreen';
+import WasteClassificationScreen from './src/screens/WasteClassificationScreen';
+import GreenPointsScreen from './src/screens/GreenPointsScreen';
+import CarbonFootprintScreen from './src/screens/CarbonFootprintScreen';
+
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -55,6 +59,21 @@ const AppNavigator: React.FC = () => {
             name="DemandShift"
             component={DemandShiftScreen}
             options={{ title: 'Akıllı Enerji Önerileri' }}
+          />
+          <Stack.Screen
+            name="WasteClassification"
+            component={WasteClassificationScreen}
+            options={{ title: 'Atık Ayrıştırma Asistanı' }}
+          />
+          <Stack.Screen
+            name="GreenPoints"
+            component={GreenPointsScreen}
+            options={{ title: 'Yeşil Puanlarım 🌱' }}
+          />
+          <Stack.Screen
+            name="CarbonFootprint"
+            component={CarbonFootprintScreen}
+            options={{ title: 'Karbon Ayak İzi 👣' }}
           />
         </>
       ) : (

@@ -5,6 +5,9 @@ export type RootStackParamList = {
   CreateDemand: undefined;
   AllCompanies: undefined;
   DemandShift: undefined;
+  WasteClassification: undefined;
+  GreenPoints: undefined;
+  CarbonFootprint: undefined;
 };
 
 export interface ElectricityDemand {
